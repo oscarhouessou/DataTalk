@@ -1,0 +1,42 @@
+# Dépendances pour l'API FastAPI DataTalk
+# Version compatible avec l'environnement existant
+
+# FastAPI et serveur
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Base de données et ORM
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Validation et sérialisation
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Authentification et sécurité
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# Cache et sessions
+redis==5.0.1
+python-redis==0.1.1
+
+# Monitoring et logging
+structlog==23.2.0
+
+# Tests
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+
+# Dépendances déjà installées (partagées avec Streamlit)
+pandas>=1.5.0
+numpy>=1.24.0
+matplotlib>=3.6.0
+seaborn>=0.12.0
+langchain-openai>=0.0.1
+langchain-experimental>=0.0.1
+openai>=1.0.0
+openpyxl>=3.1.0
