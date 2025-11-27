@@ -215,17 +215,23 @@ async function loadInsights() {
         const data = await response.json();
 
         if (data.success && data.insights) {
-            // Formater les insights pour une meilleure lisibilité
-            let formattedInsights = data.insights
-                // Convertir les bullet points • en HTML
-                .replace(/•\s*Insight\s*\d+:\s*\*\*([^*]+)\*\*/g, '<div style="margin-bottom: 1rem;"><strong style="color: var(--primary); display: block; margin-bottom: 0.25rem;">💡 $1</strong>')
-                .replace(/\n\n/g, '</div>')
-                // Convertir les ** en strong
-                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                // Convertir les retours à la ligne simples en <br>
-                .replace(/\n/g, '<br>');
+            // Utiliser insights_html si disponible, sinon formater insights
+            let formattedInsights;
+            
+            if (data.insights_html) {
+                formattedInsights = data.insights_html;
+            } else {
+                formattedInsights = data.insights
+                    // Convertir les bullet points • en HTML
+                    .replace(/•\s*Insight\s*\d+:\s*\*\*([^*]+)\*\*/g, '<div style="margin-bottom: 1rem;"><strong style="color: var(--primary); display: block; margin-bottom: 0.25rem;">💡 $1</strong>')
+                    .replace(/\n\n/g, '</div>')
+                    // Convertir les ** en strong
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    // Convertir les retours à la ligne simples en <br>
+                    .replace(/\n/g, '<br>');
+            }
 
-            insightsContent.innerHTML = `<div style="line-height: 1.7;">${formattedInsights}</div>`;
+            insightsContent.innerHTML = `<div style="line-height: 1.8;">${formattedInsights}</div>`;
         } else {
             insightsContent.innerHTML = '<p style="color: var(--text-muted); font-style: italic;">Aucun insight disponible</p>';
         }
@@ -357,7 +363,7 @@ function addMessageToChat(role, text, chartData = null) {
 
     const textDiv = document.createElement('div');
     textDiv.className = 'message-text';
-    textDiv.textContent = text;
+    textDiv.innerHTML = text; // Utiliser innerHTML pour interpréter les balises HTML
 
     content.appendChild(textDiv);
 

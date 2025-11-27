@@ -16,9 +16,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
+from openai import OpenAI
 
 # Charger les variables d'environnement
 load_dotenv()
+
+# Configuration OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Créer l'instance FastAPI
 app = FastAPI(
@@ -69,20 +73,99 @@ class ChartRequest(BaseModel):
     session_id: str
     chart_type: str = "auto"
 
+def analyze_locally(df, query):
+    """Analyse locale pour les questions simples"""
+    query_lower = query.lower()
+    
+    # Questions sur la taille
+    if any(word in query_lower for word in ['taille', 'lignes', 'colonnes', 'dimensions']):
+        return f"Le dataset contient <strong>{len(df)} lignes</strong> et <strong>{len(df.columns)} colonnes</strong>.<br>Colonnes disponibles: {', '.join(df.columns.tolist())}"
+    
+    # Questions sur les statistiques
+    if any(word in query_lower for word in ['statistique', 'résumé', 'summary', 'describe']):
+        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+        if numeric_cols:
+            stats_text = "<strong>Statistiques des colonnes numériques:</strong><br><br>"
+            for col in numeric_cols:
+                stats = df[col].describe()
+                stats_text += f"<strong>{col}:</strong><br>"
+                stats_text += f"• Moyenne: {stats['mean']:.2f}<br>"
+                stats_text += f"• Médiane: {stats['50%']:.2f}<br>"
+                stats_text += f"• Écart-type: {stats['std']:.2f}<br>"
+                stats_text += f"• Min: {stats['min']:.2f} | Max: {stats['max']:.2f}<br><br>"
+            return stats_text
+    
+    # Questions sur les valeurs manquantes
+    if any(word in query_lower for word in ['manquant', 'null', 'vide', 'missing']):
+        missing_count = df.isnull().sum().sum()
+        if missing_count > 0:
+            missing_by_col = df.isnull().sum()
+            missing_details = "<strong>Valeurs manquantes par colonne:</strong><br>"
+            for col, count in missing_by_col[missing_by_col > 0].items():
+                missing_details += f"• {col}: {count} valeurs manquantes<br>"
+            return f"Total: <strong>{missing_count} valeurs manquantes</strong><br><br>{missing_details}"
+        else:
+            return "✅ <strong>Aucune valeur manquante</strong> dans le dataset !"
+    
+    # Questions sur les colonnes
+    if any(word in query_lower for word in ['colonnes', 'columns', 'variables']):
+        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+        categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        
+        result = f"<strong>Colonnes du dataset ({len(df.columns)} au total):</strong><br><br>"
+        if numeric_cols:
+            result += f"🔢 <strong>Numériques ({len(numeric_cols)}):</strong> {', '.join(numeric_cols)}<br><br>"
+        if categorical_cols:
+            result += f"📝 <strong>Catégorielles ({len(categorical_cols)}):</strong> {', '.join(categorical_cols)}"
+        
+        return result
+    
+    return None  # Utiliser OpenAI pour les questions complexes
+
 def analyze_with_openai(df, query):
     """Analyse des données avec OpenAI directement"""
     try:
         from openai import OpenAI
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         
-        # Créer un résumé des données
+        # Créer un résumé détaillé des données avec vraies statistiques
+        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+        categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        
+        # Statistiques numériques réelles
+        numeric_stats = ""
+        if numeric_cols:
+            for col in numeric_cols:
+                stats = df[col].describe()
+                numeric_stats += f"""
+  - {col}: 
+    - Moyenne: {stats['mean']:.2f}
+    - Médiane: {stats['50%']:.2f}
+    - Écart-type: {stats['std']:.2f}
+    - Min: {stats['min']:.2f}
+    - Max: {stats['max']:.2f}"""
+        
+        # Informations catégorielles réelles
+        categorical_info = ""
+        if categorical_cols:
+            for col in categorical_cols:
+                unique_values = df[col].unique()[:10]  # Limiter à 10 valeurs
+                categorical_info += f"""
+  - {col}: {len(df[col].unique())} valeurs uniques - Exemples: {', '.join(map(str, unique_values))}"""
+        
         summary = f"""
 Dataset info:
-- Rows: {len(df)}
-- Columns: {len(df.columns)}
-- Column names: {', '.join(df.columns.tolist())}
-- Data types: {df.dtypes.to_dict()}
-- First few rows: {df.head(3).to_string()}
+- Lignes: {len(df)}
+- Colonnes: {len(df.columns)}
+- Colonnes: {', '.join(df.columns.tolist())}
+- Valeurs manquantes: {df.isnull().sum().sum()} au total
+
+Statistiques numériques:{numeric_stats}
+
+Variables catégorielles:{categorical_info}
+
+Échantillon des données:
+{df.head(3).to_string()}
 """
         
         prompt = f"""
@@ -193,13 +276,25 @@ async def process_query(request: QueryRequest):
         session_id = request.session_id
         query = request.query
         
+        # Si pas de dataset, répondre de façon générique
         if session_id not in datasets:
-            raise HTTPException(status_code=404, detail="Session non trouvée")
+            answer = "Je ne peux pas analyser de données car aucun fichier n'a été téléchargé. Veuillez d'abord télécharger un fichier CSV ou Excel pour que je puisse vous aider à analyser vos données."
+            
+            return QueryResponse(
+                session_id=session_id,
+                query=query,
+                answer=answer,
+                success=True
+            )
         
         df = datasets[session_id]['dataframe']
         
-        # Analyse avec OpenAI
-        answer = analyze_with_openai(df, query)
+        # Essayer d'abord l'analyse locale (plus rapide)
+        answer = analyze_locally(df, query)
+        
+        # Si l'analyse locale ne peut pas répondre, utiliser OpenAI
+        if answer is None:
+            answer = analyze_with_openai(df, query)
         
         # Créer graphique si approprié
         chart_data = create_simple_chart(df, query)
@@ -218,6 +313,11 @@ async def process_query(request: QueryRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@app.post("/chat")
+async def process_chat(request: QueryRequest):
+    """Endpoint de compatibilité - redirige vers /query"""
+    return await process_query(request)
 
 @app.post("/questions")
 async def get_questions(request: QuestionsRequest):
@@ -267,37 +367,45 @@ async def get_insights(request: QuestionsRequest):
         insights = []
         
         # Insight sur la taille
-        insights.append(f"📊 **Taille du dataset**: {len(df)} lignes et {len(df.columns)} colonnes")
+        insights.append(f"📊 <strong>Taille du dataset</strong>: {len(df)} lignes et {len(df.columns)} colonnes")
         
         # Insight sur les colonnes numériques
         numeric_cols = df.select_dtypes(include=['number']).columns
         if len(numeric_cols) > 0:
-            insights.append(f"🔢 **Colonnes numériques**: {len(numeric_cols)} colonnes ({', '.join(numeric_cols.tolist())})")
+            insights.append(f"🔢 <strong>Colonnes numériques</strong>: {len(numeric_cols)} colonnes ({', '.join(numeric_cols.tolist())})")
         
         # Insight sur les valeurs manquantes
         missing_count = df.isnull().sum().sum()
         if missing_count > 0:
-            insights.append(f"⚠️ **Valeurs manquantes**: {missing_count} valeurs manquantes au total")
+            insights.append(f"⚠️ <strong>Valeurs manquantes</strong>: {missing_count} valeurs manquantes au total")
         else:
-            insights.append("✅ **Qualité des données**: Aucune valeur manquante détectée")
+            insights.append("✅ <strong>Qualité des données</strong>: Aucune valeur manquante détectée")
         
         # Insight sur les doublons
         duplicates = df.duplicated().sum()
         if duplicates > 0:
-            insights.append(f"🔄 **Doublons**: {duplicates} lignes dupliquées détectées")
+            insights.append(f"🔄 <strong>Doublons</strong>: {duplicates} lignes dupliquées détectées")
         else:
-            insights.append("✅ **Unicité**: Aucun doublon détecté")
+            insights.append("✅ <strong>Unicité</strong>: Aucun doublon détecté")
         
         # Insights sur les colonnes catégorielles
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns
         if len(categorical_cols) > 0:
-            insights.append(f"📝 **Colonnes catégorielles**: {len(categorical_cols)} colonnes ({', '.join(categorical_cols.tolist())})")
+            insights.append(f"📝 <strong>Colonnes catégorielles</strong>: {len(categorical_cols)} colonnes ({', '.join(categorical_cols.tolist())})")
         
+        # Formatage avec des séparateurs plus clairs
         insights_text = "\n\n".join(insights)
+        
+        # Formatage HTML avec plus d'espacement et meilleure séparation
+        insights_html_formatted = []
+        for i, insight in enumerate(insights):
+            border_style = "" if i == len(insights) - 1 else "border-bottom: 1px solid #f0f0f0;"
+            insights_html_formatted.append(f'<div style="margin-bottom: 20px; padding: 12px 0; {border_style} line-height: 1.6; font-size: 14px;">{insight}</div>')
         
         return {
             "session_id": session_id,
             "insights": insights_text,
+            "insights_html": "".join(insights_html_formatted),
             "success": True
         }
         

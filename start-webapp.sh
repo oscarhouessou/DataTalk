@@ -56,5 +56,5 @@ echo ""
 (sleep 2 && open http://localhost:8000/web/index.html) &
 
 # Lancer le serveur
-python api_simple.py
+python api_minimal.py
 
