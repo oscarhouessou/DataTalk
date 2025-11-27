@@ -1,6 +1,10 @@
-# 🤖 NLQ Data Analyst MVP
+# 🤖 DataTalk - NLQ Data Analyst MVP
 
-Une application Streamlit intelligente qui permet de converser avec vos données en langage naturel et génère automatiquement des graphiques pertinents.
+Une application web intelligente qui permet de converser avec vos données en langage naturel et génère automatiquement des graphiques pertinents.
+
+## 📸 Aperçu de l'Application
+
+![DataTalk Interface](data_talk_home.png)
 
 ## ✨ Fonctionnalités
 
