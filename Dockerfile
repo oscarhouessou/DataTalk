@@ -32,4 +32,4 @@ RUN useradd --create-home --shell /bin/bash app \
 USER app
 
 # Commande de démarrage
-CMD ["python", "api_simple.py"]
+CMD ["python", "api_minimal.py"]

@@ -65,6 +65,7 @@ def import_nlq_functions():
         return nlq_module
     except Exception as e:
         print(f"Erreur lors de l'import de nlq.py: {e}")
+        print("Continuera avec des fonctionnalités limitées...")
         return None
 
 # Charger les fonctions NLQ

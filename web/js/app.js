@@ -2,7 +2,10 @@
 // Configuration et État de l'Application
 // ========================================
 
-const API_BASE_URL = 'http://localhost:8000';
+// Détection automatique de l'environnement (local vs déployé)
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:8000' 
+    : window.location.origin;
 let sessionId = null;
 let chatHistory = [];
 
@@ -20,6 +23,9 @@ function initializeApp() {
 
     // Initialiser les event listeners
     setupEventListeners();
+    
+    // Charger les suggestions par défaut
+    loadSuggestions();
 
     console.log('DataTalk initialized with session:', sessionId);
 }
@@ -290,7 +296,7 @@ async function sendMessage() {
 
     try {
         // Envoyer la requête à l'API
-        const response = await fetch(`${API_BASE_URL}/chat`, {
+        const response = await fetch(`${API_BASE_URL}/query`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
