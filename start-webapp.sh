@@ -22,8 +22,8 @@ echo "📦 Vérification des dépendances..."
 python -c "import fastapi" 2>/dev/null
 if [ $? -ne 0 ]; then
     echo "⚠️  Certaines dépendances sont manquantes."
-    echo "📥 Installation des dépendances..."
-    pip install fastapi uvicorn python-dotenv pandas langchain langchain-openai langchain-experimental matplotlib seaborn openpyxl python-multipart
+    echo "📥 Installation des dépendances minimales..."
+    pip install fastapi uvicorn python-dotenv pandas matplotlib seaborn openpyxl python-multipart openai
 fi
 
 # Vérifier si le fichier .env existe
@@ -47,13 +47,13 @@ echo ""
 
 # Démarrer le serveur FastAPI
 echo "🌐 Démarrage du serveur API sur http://localhost:8000"
-echo "📱 Interface web disponible sur http://localhost:8000/web/index.html"
+echo "📱 Interface web disponible sur http://localhost:8000/"
 echo ""
 echo "💡 Appuyez sur Ctrl+C pour arrêter le serveur"
 echo ""
 
 # Ouvrir le navigateur après 2 secondes
-(sleep 2 && open http://localhost:8000/web/index.html) &
+(sleep 2 && open http://localhost:8000/) &
 
 # Lancer le serveur
 python api_minimal.py

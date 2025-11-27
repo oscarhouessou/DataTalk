@@ -6,6 +6,7 @@ Version sans LangChain pour éviter les conflits de dépendances
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import pandas as pd
 import io
@@ -40,9 +41,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Monter le dossier web
-if os.path.exists("web"):
-    app.mount("/web", StaticFiles(directory="web", html=True), name="web")
+# Le montage des fichiers statiques sera fait APRES la définition des routes
+# afin de garantir que les endpoints de l'API restent prioritaires.
 
 # Stockage des datasets
 datasets = {}
@@ -234,8 +234,11 @@ def create_simple_chart(df, query):
     
     return None
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 async def root():
+    # Servir l'interface web si elle existe, sinon renvoyer un message API
+    if os.path.exists("web/index.html"):
+        return FileResponse("web/index.html")
     return {"message": "DataTalk API Minimal", "version": "1.0.0", "status": "running"}
 
 @app.post("/upload", response_model=UploadResponse)
@@ -450,6 +453,10 @@ async def delete_session(session_id: str):
         return {"message": f"Session {session_id} supprimée"}
     else:
         raise HTTPException(status_code=404, detail="Session non trouvée")
+
+# Monter les fichiers statiques pour servir l'application web (doit être APRES les routes API)
+if os.path.exists("web"):
+    app.mount("/", StaticFiles(directory="web"), name="static")
 
 if __name__ == "__main__":
     import uvicorn
