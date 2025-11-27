@@ -5,6 +5,8 @@ Réutilise la logique de nlq.py sans le modifier
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import pandas as pd
 import io
@@ -12,6 +14,10 @@ import os
 from dotenv import load_dotenv
 import sys
 import importlib.util
+import base64
+import matplotlib
+matplotlib.use('Agg')  # Backend non-interactif pour les graphiques
+import matplotlib.pyplot as plt
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -32,8 +38,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Stockage temporaire des datasets
+# Monter le dossier web pour servir les fichiers statiques
+if os.path.exists("web"):
+    app.mount("/web", StaticFiles(directory="web", html=True), name="web")
+
+# Stockage temporaire des datasets et agents
 datasets = {}
+agents = {}
 
 # Importer les fonctions du nlq.py existant
 def import_nlq_functions():
@@ -208,6 +219,93 @@ async def suggest_questions(request: QuestionsRequest):
                     "Comment les données sont-elles distribuées?"
                 ],
                 "success": True
+            }
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@app.post("/insights")
+async def get_insights(request: QuestionsRequest):
+    """Génération d'insights automatiques"""
+    try:
+        if request.session_id not in datasets:
+            raise HTTPException(status_code=404, detail="Dataset non trouvé")
+        
+        df = datasets[request.session_id]
+        
+        if nlq_functions and hasattr(nlq_functions, 'detect_automatic_insights'):
+            from langchain_openai import ChatOpenAI
+            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+            
+            insights = nlq_functions.detect_automatic_insights(llm, df)
+            
+            return {
+                "session_id": request.session_id,
+                "insights": insights,
+                "success": True
+            }
+        else:
+            return {
+                "session_id": request.session_id,
+                "insights": "Insights non disponibles",
+                "success": False
+            }
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+class ChartRequest(BaseModel):
+    session_id: str
+    question: str
+    answer: str
+
+@app.post("/chart")
+async def generate_chart(request: ChartRequest):
+    """Génération de graphique basé sur question/réponse"""
+    try:
+        if request.session_id not in datasets:
+            raise HTTPException(status_code=404, detail="Dataset non trouvé")
+        
+        df = datasets[request.session_id]
+        
+        if nlq_functions and hasattr(nlq_functions, 'get_chart_recommendation'):
+            from langchain_openai import ChatOpenAI
+            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+            
+            # Obtenir la recommandation de graphique
+            chart_recommendation, needs_chart = nlq_functions.get_chart_recommendation(
+                llm, df, request.question, request.answer
+            )
+            
+            if needs_chart and chart_recommendation:
+                # Créer le graphique
+                fig = nlq_functions.create_chart_from_ai_recommendation(df, chart_recommendation)
+                
+                if fig:
+                    # Convertir le graphique en base64
+                    buf = io.BytesIO()
+                    fig.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+                    buf.seek(0)
+                    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                    plt.close(fig)
+                    
+                    return {
+                        "session_id": request.session_id,
+                        "has_chart": True,
+                        "chart_data": f"data:image/png;base64,{img_base64}",
+                        "success": True
+                    }
+            
+            return {
+                "session_id": request.session_id,
+                "has_chart": False,
+                "success": True
+            }
+        else:
+            return {
+                "session_id": request.session_id,
+                "has_chart": False,
+                "success": False
             }
             
     except Exception as e:

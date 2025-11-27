@@ -1,0 +1,94 @@
+
+import os
+from dotenv import load_dotenv
+import pandas as pd
+from langchain_openai import ChatOpenAI
+import sys
+
+# Load env vars
+load_dotenv()
+
+# Check API Key
+api_key = os.getenv("OPENAI_API_KEY")
+print(f"API Key present: {bool(api_key)}")
+if api_key:
+    print(f"API Key start: {api_key[:5]}...")
+
+# Mock Streamlit
+class MockStreamlit:
+    def __getattr__(self, name):
+        return lambda *args, **kwargs: None
+sys.modules['streamlit'] = MockStreamlit()
+
+# Import nlq
+try:
+    import nlq
+    print("nlq imported successfully")
+except ImportError as e:
+    print(f"Error importing nlq: {e}")
+    sys.exit(1)
+
+# Create dummy dataframe
+df = pd.DataFrame({
+    'A': [1, 2, 3, 4, 5],
+    'B': ['a', 'b', 'c', 'd', 'e']
+})
+
+# Initialize LLM
+try:
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+    print("LLM initialized")
+except Exception as e:
+    print(f"Error initializing LLM: {e}")
+    sys.exit(1)
+
+# Run detect_automatic_insights
+print("Running detect_automatic_insights...")
+try:
+    # We need to bypass the try-except block in nlq.py to see the error
+    # But we can't easily do that without modifying the file.
+    # However, if we call it, and it returns the error string, we know it failed.
+    # To debug, we can try to run the code inside detect_automatic_insights manually here.
+    
+    # Replicate the logic from detect_automatic_insights
+    stats_summary = df.describe().to_string()
+    missing_data = df.isnull().sum()
+    missing_info = missing_data[missing_data > 0].to_string() if missing_data.sum() > 0 else "Aucune donnée manquante"
+    sample_data = df.head(5).to_string()
+    
+    prompt = f"""
+    Analyse ce dataset et identifie 3-4 insights automatiques intéressants et actionables.
+    
+    Statistiques descriptives:
+    {stats_summary}
+    
+    Données manquantes:
+    {missing_info}
+    
+    Échantillon des données:
+    {sample_data}
+    
+    Identifie des insights du type:
+    - Anomalies ou valeurs surprenantes
+    - Distributions intéressantes
+    - Déséquilibres dans les données
+    - Patterns ou tendances évidentes
+    - Qualité des données
+    
+    Réponds avec 3-4 points courts et actionables, format:
+    • Insight 1: Description courte et claire
+    • Insight 2: Description courte et claire
+    • Insight 3: Description courte et claire
+    
+    Sois concis et pratique.
+    """
+    
+    print("Invoking LLM directly...")
+    response = llm.invoke(prompt)
+    print("LLM Response received:")
+    print(response.content)
+    
+except Exception as e:
+    print(f"Caught exception during manual execution: {e}")
+    import traceback
+    traceback.print_exc()

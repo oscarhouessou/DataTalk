@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataTalk - Analyse de Données en Langage Naturel</title>
+    <meta name="description" content="Application d'analyse de données intelligente avec IA">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🤖</span>
+                <h1 class="logo-text">DataTalk</h1>
+            </div>
+            <p class="tagline">Analysez vos données en langage naturel</p>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Upload Section -->
+        <section id="upload-section" class="upload-section">
+            <div class="upload-card">
+                <div class="upload-icon">📊</div>
+                <h2>Commencez votre analyse</h2>
+                <p>Téléversez un fichier CSV ou Excel pour démarrer</p>
+                
+                <div id="drop-zone" class="drop-zone">
+                    <div class="drop-zone-content">
+                        <span class="upload-cloud">☁️</span>
+                        <p class="drop-text">Glissez-déposez votre fichier ici</p>
+                        <p class="drop-or">ou</p>
+                        <button id="browse-btn" class="btn-primary">Parcourir les fichiers</button>
+                        <input type="file" id="file-input" accept=".csv,.xlsx,.xls" hidden>
+                        <p class="file-types">CSV, XLSX, XLS</p>
+                    </div>
+                </div>
+                
+                <div id="upload-progress" class="upload-progress hidden">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <p class="progress-text">Chargement en cours...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main App Section -->
+        <section id="app-section" class="app-section hidden">
+            <div class="app-layout">
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">
+                            <span class="icon">🔍</span>
+                            Insights Automatiques
+                        </h3>
+                        <div id="insights-content" class="insights-content">
+                            <div class="loading-spinner"></div>
+                            <p class="loading-text">Génération d'insights...</p>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">
+                            <span class="icon">💡</span>
+                            Questions Suggérées
+                        </h3>
+                        <div id="suggestions-content" class="suggestions-content">
+                            <div class="loading-spinner"></div>
+                            <p class="loading-text">Génération de suggestions...</p>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">
+                            <span class="icon">📈</span>
+                            Informations Dataset
+                        </h3>
+                        <div id="dataset-info" class="dataset-info">
+                            <div class="info-item">
+                                <span class="info-label">Fichier:</span>
+                                <span id="file-name" class="info-value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Lignes:</span>
+                                <span id="file-rows" class="info-value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Colonnes:</span>
+                                <span id="file-cols" class="info-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="new-file-btn" class="btn-secondary">
+                        <span class="icon">📊</span>
+                        Nouveau fichier
+                    </button>
+                </aside>
+
+                <!-- Chat Area -->
+                <main class="chat-area">
+                    <div class="chat-header">
+                        <h2>💬 Chat avec vos données</h2>
+                        <button id="clear-chat-btn" class="btn-icon" title="Effacer l'historique">
+                            🗑️
+                        </button>
+                    </div>
+
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="welcome-message">
+                            <div class="welcome-icon">👋</div>
+                            <h3>Bienvenue sur DataTalk !</h3>
+                            <p>Posez vos questions sur les données en langage naturel.</p>
+                            <p class="welcome-hint">Essayez les questions suggérées ou posez votre propre question.</p>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-container">
+                        <div class="chat-input-wrapper">
+                            <input 
+                                type="text" 
+                                id="chat-input" 
+                                class="chat-input" 
+                                placeholder="Posez votre question sur les données..."
+                                autocomplete="off"
+                            >
+                            <button id="send-btn" class="btn-send" title="Envoyer">
+                                <span class="send-icon">➤</span>
+                            </button>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

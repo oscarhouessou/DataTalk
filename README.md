@@ -4,6 +4,13 @@ Une application Streamlit intelligente qui permet de converser avec vos données
 
 ## ✨ Fonctionnalités
 
+### 🌐 Application Web Moderne
+- Interface utilisateur premium avec design glassmorphism
+- Drag & drop pour l'upload de fichiers
+- Animations fluides et micro-interactions
+- Design responsive (mobile, tablet, desktop)
+- Dark mode élégant
+
 ### 💬 Chat Conversationnel
 - Interface de chat naturelle avec historique persistant
 - Réponses contextuelles et engageantes
@@ -36,6 +43,14 @@ OPENAI_API_KEY=sk-proj-votre_cle_api_ici
 ```
 
 ### 3. Lancement de l'application
+
+#### Option 1: Application Web Moderne (Recommandé)
+```bash
+./start-webapp.sh
+```
+L'application web s'ouvrira automatiquement dans votre navigateur sur http://localhost:8000/web/index.html
+
+#### Option 2: Interface Streamlit
 ```bash
 streamlit run nlq.py
 ```
@@ -58,7 +73,9 @@ streamlit run nlq.py
 ## 🔧 Architecture Technique
 
 ### Composants Principaux
-- **Streamlit** : Interface utilisateur et chat
+- **Frontend Web** : HTML5 + CSS3 + Vanilla JavaScript
+- **Backend API** : FastAPI avec endpoints REST
+- **Streamlit** : Interface utilisateur alternative
 - **LangChain** : Agent d'analyse de données avec pandas
 - **OpenAI GPT-4o-mini** : IA conversationnelle et recommandation de graphiques
 - **Matplotlib/Seaborn** : Génération de graphiques

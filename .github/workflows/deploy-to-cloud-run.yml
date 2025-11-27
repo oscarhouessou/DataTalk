@@ -1,0 +1,122 @@
+name: Deploy DataTalk to Cloud Run
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SERVICE_NAME: datatalk-app
+  REGION: europe-west4
+  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/datatalk-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA }}
+
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Check Basic Authentication
+      run: |
+        echo "🔍 Vérification de l'authentification..."
+        
+        # Récupérer l'email du service account
+        SA_EMAIL=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
+        echo "✅ Service Account connecté: $SA_EMAIL"
+        echo "✅ Project ID: $PROJECT_ID"
+        
+        echo ""
+        echo "ℹ️  Permissions requises pour ce service account:"
+        echo "  • roles/run.admin (Cloud Run Admin)"
+        echo "  • roles/storage.admin (Storage Admin)"
+        echo "  • roles/cloudbuild.builds.editor (Cloud Build Editor)"
+        echo "  • roles/iam.serviceAccountUser (Service Account User)"
+        echo ""
+        echo "ℹ️  APIs qui doivent être activées:"
+        echo "  • run.googleapis.com (Cloud Run API)"
+        echo "  • cloudbuild.googleapis.com (Cloud Build API)"
+        echo "  • containerregistry.googleapis.com (Container Registry API)"
+        echo ""
+        echo "🛠️  Si vous avez des erreurs, configurez les permissions nécessaires"
+
+    - name: Configure Docker to use gcloud
+      run: |
+        gcloud auth configure-docker --quiet
+
+    - name: Build and Push Docker image
+      run: |
+        echo "🏗️ Building Docker image for DataTalk App..."
+        BUILD_ID=$(gcloud builds submit --tag $IMAGE_NAME --async --format="value(name)" | cut -d'/' -f6)
+        echo "📋 Build ID: $BUILD_ID"
+        
+        if [ -z "$BUILD_ID" ]; then
+          echo "❌ Failed to get Build ID"
+          exit 1
+        fi
+        
+        echo "⏳ Waiting for build completion..."
+        
+        while true; do
+          BUILD_STATUS=$(gcloud builds describe $BUILD_ID --format="value(status)" 2>/dev/null || echo "UNKNOWN")
+          echo "Current status: $BUILD_STATUS"
+          case $BUILD_STATUS in
+            "SUCCESS")
+              echo "✅ Build completed successfully!"
+              break
+              ;;
+            "FAILURE"|"CANCELLED"|"TIMEOUT")
+              echo "❌ Build failed with status: $BUILD_STATUS"
+              echo "🔗 Check build logs at: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID"
+              exit 1
+              ;;
+            "WORKING"|"QUEUED")
+              echo "🔄 Build in progress... waiting 30s"
+              sleep 30
+              ;;
+            "UNKNOWN")
+              echo "❌ Cannot get build status. Build ID may be invalid."
+              exit 1
+              ;;
+            *)
+              echo "🤔 Unknown status: $BUILD_STATUS, waiting..."
+              sleep 30
+              ;;
+          esac
+        done
+
+    - name: Deploy to Cloud Run
+      run: |
+        echo "🚀 Deploying DataTalk App to Cloud Run..."
+        gcloud run deploy $SERVICE_NAME \
+          --image $IMAGE_NAME \
+          --platform managed \
+          --region $REGION \
+          --allow-unauthenticated \
+          --port 8000 \
+          --memory 1Gi \
+          --cpu 1 \
+          --max-instances 10 \
+          --timeout 300 \
+          --set-env-vars OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+        
+        SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --region=$REGION --format="value(status.url)")
+        echo "✅ Deployment completed!"
+        echo "🌐 Service URL: $SERVICE_URL"
+        echo "🔗 Web Interface: $SERVICE_URL/web/index.html"
