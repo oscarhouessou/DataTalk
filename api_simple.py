@@ -71,6 +71,22 @@ def import_nlq_functions():
 # Charger les fonctions NLQ
 nlq_functions = import_nlq_functions()
 
+# Helper pour initialiser le LLM avec priorité à Groq
+def get_llm():
+    """Initialise le LLM (Groq ou OpenAI)"""
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if groq_api_key:
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(
+            model="llama-3.3-70b-versatile", 
+            temperature=0.1,
+            openai_api_key=groq_api_key,
+            openai_api_base="https://api.groq.com/openai/v1"
+        )
+    else:
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+
 # Modèles Pydantic
 class QueryRequest(BaseModel):
     session_id: str
@@ -108,7 +124,8 @@ async def health():
     """Vérification de l'état de l'API"""
     return {
         "status": "healthy",
-        "openai_configured": bool(os.getenv("OPENAI_API_KEY"))
+        "ai_configured": bool(os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")),
+        "provider": "groq" if os.getenv("GROQ_API_KEY") else "openai"
     }
 
 @app.post("/upload", response_model=UploadResponse)
@@ -161,10 +178,9 @@ async def chat_query(request: QueryRequest):
         df = datasets[request.session_id]
         
         # Utiliser l'agent NLQ du nlq.py
-        from langchain_openai import ChatOpenAI
         from langchain_experimental.agents import create_pandas_dataframe_agent
         
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+        llm = get_llm()
         
         # Créer l'agent avec le même prompt que nlq.py
         agent = create_pandas_dataframe_agent(
@@ -200,8 +216,7 @@ async def suggest_questions(request: QuestionsRequest):
         df = datasets[request.session_id]
         
         if nlq_functions and hasattr(nlq_functions, 'generate_smart_questions'):
-            from langchain_openai import ChatOpenAI
-            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+            llm = get_llm()
             
             questions = nlq_functions.generate_smart_questions(llm, df)
             
@@ -235,8 +250,7 @@ async def get_insights(request: QuestionsRequest):
         df = datasets[request.session_id]
         
         if nlq_functions and hasattr(nlq_functions, 'detect_automatic_insights'):
-            from langchain_openai import ChatOpenAI
-            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+            llm = get_llm()
             
             insights = nlq_functions.detect_automatic_insights(llm, df)
             
@@ -270,8 +284,7 @@ async def generate_chart(request: ChartRequest):
         df = datasets[request.session_id]
         
         if nlq_functions and hasattr(nlq_functions, 'get_chart_recommendation'):
-            from langchain_openai import ChatOpenAI
-            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+            llm = get_llm()
             
             # Obtenir la recommandation de graphique
             chart_recommendation, needs_chart = nlq_functions.get_chart_recommendation(

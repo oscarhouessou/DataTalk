@@ -5,14 +5,14 @@ from dotenv import load_dotenv
 import socket
 
 load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("GROQ_API_KEY")
 
-print(f"Testing connectivity to api.openai.com...")
+print(f"Testing connectivity to api.groq.com...")
 
 # 1. DNS Resolution
 try:
-    ip = socket.gethostbyname("api.openai.com")
-    print(f"DNS Resolution OK: api.openai.com -> {ip}")
+    ip = socket.gethostbyname("api.groq.com")
+    print(f"DNS Resolution OK: api.groq.com -> {ip}")
 except Exception as e:
     print(f"DNS Resolution FAILED: {e}")
 
@@ -23,14 +23,14 @@ headers = {
     "Content-Type": "application/json"
 }
 data = {
-    "model": "gpt-4o-mini",
+    "model": "llama-3.3-70b-versatile",
     "messages": [{"role": "user", "content": "Hello"}],
     "max_tokens": 5
 }
 
 try:
     response = requests.post(
-        "https://api.openai.com/v1/chat/completions",
+        "https://api.groq.com/openai/v1/chat/completions",
         headers=headers,
         json=data,
         timeout=10

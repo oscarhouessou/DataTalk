@@ -27,10 +27,18 @@ class Settings(BaseSettings):
     api_key: str = os.getenv("API_KEY", "")
     secret_key: str = os.getenv("SECRET_KEY", "datatalk-secret-key-change-in-production")
     
-    # OpenAI Configuration
+    # API Keys Configuration
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    groq_api_key: str = os.getenv("GROQ_API_KEY", "")
+    
+    # Model Configuration
+    # Priorité à Groq si la clé est présente
+    default_model: str = "llama-3.3-70b-versatile" if os.getenv("GROQ_API_KEY") else "gpt-4o-mini"
     openai_model: str = "gpt-4o-mini"
+    groq_model: str = "llama-3.3-70b-versatile"
+    
     openai_temperature: float = 0.1
+    groq_temperature: float = 0.1
     
     # Limites de l'API
     max_file_size: int = 100 * 1024 * 1024  # 100MB

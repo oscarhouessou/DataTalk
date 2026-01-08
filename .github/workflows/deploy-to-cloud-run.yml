@@ -114,7 +114,7 @@ jobs:
           --cpu 1 \
           --max-instances 10 \
           --timeout 300 \
-          --set-env-vars OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          --set-env-vars OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}",GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}"
         
         SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --region=$REGION --format="value(status.url)")
         echo "✅ Deployment completed!"

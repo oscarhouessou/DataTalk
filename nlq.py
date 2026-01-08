@@ -477,16 +477,18 @@ st.markdown(
 load_dotenv()
 
 # Vérification de la clé API
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key or api_key == "your_openai_api_key_here":
-    st.error("🔑 Clé API OpenAI non configurée !")
+groq_api_key = os.getenv("GROQ_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+if not (groq_api_key or openai_api_key) or (openai_api_key == "your_openai_api_key_here" and not groq_api_key):
+    st.error("🔑 Clé API non configurée !")
     st.markdown("""
     **Pour configurer votre clé API :**
     1. Ouvrez le fichier `.env` dans ce dossier
-    2. Remplacez `your_openai_api_key_here` par votre vraie clé API OpenAI
+    2. Ajoutez `GROQ_API_KEY=votre_cle_groq` (recommandé) ou `OPENAI_API_KEY=votre_cle_openai`
     3. Sauvegardez le fichier et rechargez l'application
     
-    **Obtenir une clé API :** https://platform.openai.com/account/api-keys
+    **Obtenir une clé Groq :** https://console.groq.com/keys
     """)
     st.stop()
 
@@ -517,7 +519,18 @@ if uploaded_file:
     
     # Créer l'agent LangChain une seule fois
     if "agent" not in st.session_state:
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)  # Un peu de créativité pour la conversation
+        # Initialiser le LLM avec priorité à Groq
+        if groq_api_key:
+            llm = ChatOpenAI(
+                model="llama-3.3-70b-versatile", 
+                temperature=0.1,
+                openai_api_key=groq_api_key,
+                openai_api_base="https://api.groq.com/openai/v1"
+            )
+            st.info("🚀 Utilisation de Groq (llama3-70b-8192)")
+        else:
+            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+            st.info("🤖 Utilisation d'OpenAI (gpt-4o-mini)")
         
         # Prompt système pour un data analyst expert
         system_message = """
