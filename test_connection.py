@@ -7,6 +7,10 @@ import socket
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 
+if not api_key:
+    print("❌ GROQ_API_KEY non trouvée dans .env")
+    exit(1)
+
 print(f"Testing connectivity to api.groq.com...")
 
 # 1. DNS Resolution

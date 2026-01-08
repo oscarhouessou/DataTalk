@@ -71,9 +71,9 @@ def import_nlq_functions():
 # Charger les fonctions NLQ
 nlq_functions = import_nlq_functions()
 
-# Helper pour initialiser le LLM avec priorité à Groq
+# Helper pour initialiser le LLM Groq
 def get_llm():
-    """Initialise le LLM (Groq ou OpenAI)"""
+    """Initialise le LLM Groq"""
     groq_api_key = os.getenv("GROQ_API_KEY")
     if groq_api_key:
         from langchain_openai import ChatOpenAI
@@ -84,8 +84,8 @@ def get_llm():
             openai_api_base="https://api.groq.com/openai/v1"
         )
     else:
-        from langchain_openai import ChatOpenAI
-        return ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+        print("❌ GROQ_API_KEY non configurée !")
+        return None
 
 # Modèles Pydantic
 class QueryRequest(BaseModel):
@@ -124,8 +124,8 @@ async def health():
     """Vérification de l'état de l'API"""
     return {
         "status": "healthy",
-        "ai_configured": bool(os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")),
-        "provider": "groq" if os.getenv("GROQ_API_KEY") else "openai"
+        "groq_configured": bool(os.getenv("GROQ_API_KEY")),
+        "provider": "groq"
     }
 
 @app.post("/upload", response_model=UploadResponse)

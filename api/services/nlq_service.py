@@ -27,7 +27,7 @@ class NLQService:
     def __init__(self):
         self.settings = get_settings()
         
-        # Déterminer quel LLM utiliser (priorité à Groq)
+        # Initialisation du LLM Groq uniquement
         if self.settings.groq_api_key:
             self.llm = ChatOpenAI(
                 model=self.settings.groq_model,
@@ -37,12 +37,8 @@ class NLQService:
             )
             logger.info(f"NLQService initialisé avec Groq ({self.settings.groq_model})")
         else:
-            self.llm = ChatOpenAI(
-                model=self.settings.openai_model,
-                temperature=self.settings.openai_temperature,
-                openai_api_key=self.settings.openai_api_key
-            )
-            logger.info(f"NLQService initialisé avec OpenAI ({self.settings.openai_model})")
+            logger.warning("GROQ_API_KEY manquante. Le service ne pourra pas traiter les requêtes.")
+            self.llm = None
         
     async def process_query(
         self, 

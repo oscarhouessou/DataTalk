@@ -476,21 +476,22 @@ st.markdown(
 # -----------------------
 load_dotenv()
 
-# Vérification de la clé API
+# Vérification de la clé API Groq
 groq_api_key = os.getenv("GROQ_API_KEY")
-openai_api_key = os.getenv("OPENAI_API_KEY")
-
-if not (groq_api_key or openai_api_key) or (openai_api_key == "your_openai_api_key_here" and not groq_api_key):
-    st.error("🔑 Clé API non configurée !")
+if not groq_api_key or groq_api_key == "your_groq_api_key_here":
+    st.error("🔑 Clé API Groq non configurée !")
     st.markdown("""
-    **Pour configurer votre clé API :**
+    **Pour configurer votre clé API Groq :**
     1. Ouvrez le fichier `.env` dans ce dossier
-    2. Ajoutez `GROQ_API_KEY=votre_cle_groq` (recommandé) ou `OPENAI_API_KEY=votre_cle_openai`
+    2. Remplacez `your_groq_api_key_here` par votre vraie clé API Groq
     3. Sauvegardez le fichier et rechargez l'application
     
-    **Obtenir une clé Groq :** https://console.groq.com/keys
+    **Obtenir une clé API :** https://console.groq.com/keys
     """)
     st.stop()
+
+# Info sur le provider actif
+st.sidebar.info("🤖 **IA Service**: Groq (Llama 3.3)")
 
 # -----------------------
 # 🔹 Upload du fichier
@@ -519,18 +520,14 @@ if uploaded_file:
     
     # Créer l'agent LangChain une seule fois
     if "agent" not in st.session_state:
-        # Initialiser le LLM avec priorité à Groq
-        if groq_api_key:
-            llm = ChatOpenAI(
-                model="llama-3.3-70b-versatile", 
-                temperature=0.1,
-                openai_api_key=groq_api_key,
-                openai_api_base="https://api.groq.com/openai/v1"
-            )
-            st.info("🚀 Utilisation de Groq (llama3-70b-8192)")
-        else:
-            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
-            st.info("🤖 Utilisation d'OpenAI (gpt-4o-mini)")
+        # Initialiser le LLM Groq uniquement
+        llm = ChatOpenAI(
+            model="llama-3.3-70b-versatile", 
+            temperature=0.1,
+            openai_api_key=groq_api_key,
+            openai_api_base="https://api.groq.com/openai/v1"
+        )
+        st.info("🚀 Utilisation de Groq (llama3-70b-8192)")
         
         # Prompt système pour un data analyst expert
         system_message = """

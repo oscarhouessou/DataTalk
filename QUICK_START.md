@@ -31,6 +31,13 @@ cd webapp
 ```
 ➜ Ouvre automatiquement demo.html dans votre navigateur
 
+### Variables d'Environnement
+Pour que l'API fonctionne correctement avec Groq, assurez-vous que la variable d'environnement `GROQ_API_KEY` est définie.
+
+| Secret / Env | Valeur |
+|--------------|--------|
+| `GROQ_API_KEY` | `gsk_...` |
+
 ---
 
 ## 🎮 Test de l'Application

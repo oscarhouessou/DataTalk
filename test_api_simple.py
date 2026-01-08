@@ -30,7 +30,7 @@ def test_health():
     response = requests.get(f"{API_BASE_URL}/health")
     if response.status_code == 200:
         data = response.json()
-        print(f"✅ API en bonne santé - OpenAI configuré: {data['openai_configured']}")
+        print(f"✅ API en bonne santé - Groq configuré: {data['groq_configured']}")
         return True
     else:
         print(f"❌ Problème de santé: {response.status_code}")

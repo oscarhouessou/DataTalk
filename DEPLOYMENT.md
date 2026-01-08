@@ -6,7 +6,7 @@ Ce guide vous explique comment déployer automatiquement votre application DataT
 
 1. **Compte Google Cloud Platform** avec facturation activée
 2. **Repository GitHub** avec votre code DataTalk
-3. **Clé API OpenAI** valide
+3. **Clé API Groq** valide
 
 ## ⚙️ Configuration Initiale
 
@@ -32,7 +32,6 @@ Dans votre repository GitHub, allez dans **Settings > Secrets and variables > Ac
 |--------|--------|-------------|
 | `GCP_PROJECT_ID` | `mon-projet-datatalk` | ID de votre projet GCP |
 | `GCP_SA` | `{contenu du fichier JSON}` | Clé du service account (format base64) |
-| `OPENAI_API_KEY` | `sk-proj-...` | Votre clé API OpenAI |
 | `GROQ_API_KEY` | `gsk_...` | Votre clé API Groq |
 
 ## 🎯 Déploiement Automatique
@@ -76,7 +75,6 @@ https://datatalk-app-[hash].europe-west1.run.app/web/index.html
 
 | Variable | Source | Description |
 |----------|---------|-------------|
-| `OPENAI_API_KEY` | GitHub Secret | Clé API OpenAI pour l'IA |
 | `GROQ_API_KEY` | GitHub Secret | Clé API Groq pour l'IA |
 | `PORT` | Cloud Run | Port d'écoute (8000) |
 
@@ -118,7 +116,7 @@ gcloud run services logs read datatalk-app --region=europe-west1
 
 ### Variables d'Environnement Manquantes
 
-Si `OPENAI_API_KEY` n'est pas configurée :
+Si `GROQ_API_KEY` n'est pas configurée :
 1. Vérifiez le secret GitHub
 2. Redéployez le workflow
 
@@ -142,7 +140,7 @@ Estimation pour usage modéré : **5-20€/mois**
 
 - **Logs d'erreur** : Console Google Cloud > Cloud Run > datatalk-app
 - **GitHub Actions** : Onglet Actions de votre repository
-- **API Issues** : Vérifiez votre quota OpenAI
+- **API Issues** : Vérifiez votre quota Groq
 
 ---
 

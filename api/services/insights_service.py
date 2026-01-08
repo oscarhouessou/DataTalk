@@ -23,9 +23,10 @@ class InsightsService:
     
     def __init__(self):
         self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
+            model="llama-3.3-70b-versatile",
             temperature=0.1,
-            api_key=os.getenv("OPENAI_API_KEY")
+            openai_api_key=os.getenv("GROQ_API_KEY"),
+            openai_api_base="https://api.groq.com/openai/v1"
         )
     
     async def detect_automatic_insights(

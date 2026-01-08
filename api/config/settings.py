@@ -28,16 +28,11 @@ class Settings(BaseSettings):
     secret_key: str = os.getenv("SECRET_KEY", "datatalk-secret-key-change-in-production")
     
     # API Keys Configuration
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
     
     # Model Configuration
-    # Priorité à Groq si la clé est présente
-    default_model: str = "llama-3.3-70b-versatile" if os.getenv("GROQ_API_KEY") else "gpt-4o-mini"
-    openai_model: str = "gpt-4o-mini"
-    groq_model: str = "llama-3.3-70b-versatile"
-    
-    openai_temperature: float = 0.1
+    default_model: str = "llama-3.3-70b-8192" # Modèle par défaut (Llama 3.3 70B sur Groq)
+    groq_model: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
     groq_temperature: float = 0.1
     
     # Limites de l'API

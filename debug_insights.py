@@ -8,20 +8,15 @@ import sys
 # Load env vars
 load_dotenv()
 
-# Check API Keys
+# Vérification de la clé API Groq
 groq_api_key = os.getenv("GROQ_API_KEY")
-openai_api_key = os.getenv("OPENAI_API_KEY")
 
-print(f"Groq API Key present: {bool(groq_api_key)}")
-print(f"OpenAI API Key present: {bool(openai_api_key)}")
-
-if groq_api_key:
-    print(f"Groq API Key start: {groq_api_key[:5]}...")
-elif openai_api_key:
-    print(f"OpenAI API Key start: {openai_api_key[:5]}...")
+if not groq_api_key:
+    print("❌ GROQ_API_KEY non trouvée dans .env")
+    exit(1)
 else:
-    print("No API keys found!")
-    sys.exit(1)
+    print(f"Groq API Key present: {bool(groq_api_key)}")
+    print(f"Groq API Key start: {groq_api_key[:5]}...")
 
 # Mock Streamlit
 class MockStreamlit:
@@ -45,17 +40,14 @@ df = pd.DataFrame({
 
 # Initialize LLM
 try:
-    if groq_api_key:
-        llm = ChatOpenAI(
-            model="llama-3.3-70b-versatile", 
-            temperature=0.1,
-            openai_api_key=groq_api_key,
-            openai_api_base="https://api.groq.com/openai/v1"
-        )
-        print("LLM initialized with Groq")
-    else:
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
-        print("LLM initialized with OpenAI")
+    # Utiliser Groq uniquement
+    llm = ChatOpenAI(
+        model="llama-3.3-70b-versatile", 
+        temperature=0.1,
+        openai_api_key=groq_api_key,
+        openai_api_base="https://api.groq.com/openai/v1"
+    )
+    print("🚀 Utilisation de Groq (llama-3.3-70b-versatile)")
 except Exception as e:
     print(f"Error initializing LLM: {e}")
     sys.exit(1)

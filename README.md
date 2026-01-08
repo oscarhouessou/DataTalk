@@ -36,14 +36,14 @@ Une application web intelligente qui permet de converser avec vos données en la
 
 ### 1. Installation des dépendances
 ```bash
-pip install streamlit pandas matplotlib seaborn langchain langchain-openai langchain-experimental openai python-dotenv
+pip install streamlit pandas matplotlib seaborn langchain langchain-experimental python-dotenv
 ```
 
-### 2. Configuration de la clé API OpenAI
+### 2. Configuration de la clé API Groq
 1. Créez un fichier `.env` dans le dossier du projet
-2. Ajoutez votre clé API OpenAI :
+2. Configurez votre clé API Groq dans le fichier `.env` :
 ```
-OPENAI_API_KEY=sk-proj-votre_cle_api_ici
+GROQ_API_KEY=votre_clé_ici
 ```
 
 ### 3. Lancement de l'application
@@ -81,7 +81,7 @@ streamlit run nlq.py
 - **Backend API** : FastAPI avec endpoints REST
 - **Streamlit** : Interface utilisateur alternative
 - **LangChain** : Agent d'analyse de données avec pandas
-- **OpenAI GPT-4o-mini** : IA conversationnelle et recommandation de graphiques
+- **Groq (Llama 3.3)** : IA conversationnelle ultra-rapide et recommandation de graphiques
 - **Matplotlib/Seaborn** : Génération de graphiques
 
 ### Flux de Traitement
@@ -110,7 +110,7 @@ L'IA évalue chaque question/réponse pour déterminer :
 ## 📋 Prérequis
 
 - Python 3.8+
-- Clé API OpenAI
+- Clé API Groq
 - Données au format CSV ou Excel
 
 ## 🔒 Sécurité

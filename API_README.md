@@ -26,7 +26,7 @@ DataTalk/
 ### Prérequis
 - Python 3.8+
 - Dépendances du projet nlq.py déjà installées
-- Clé API OpenAI configurée
+- Clé API Groq configurée
 
 ### Installation des dépendances API
 ```bash
@@ -43,7 +43,7 @@ API_PORT=8000
 API_RELOAD=true
 
 # Déjà configuré pour nlq.py
-OPENAI_API_KEY=your-openai-key
+GROQ_API_KEY=your-groq-key
 ```
 
 ### Démarrage de l'API
@@ -350,10 +350,10 @@ API_PORT=8000
 API_RELOAD=true
 API_WORKERS=1
 
-# OpenAI
-OPENAI_API_KEY=your-openai-key
-OPENAI_MODEL=gpt-4o-mini
-OPENAI_TEMPERATURE=0.1
+# Groq
+GROQ_API_KEY=your-groq-key
+GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_TEMPERATURE=0.1
 
 # Limites
 MAX_FILE_SIZE=104857600  # 100MB
@@ -396,7 +396,7 @@ services:
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8000
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
       - API_KEY=${API_KEY}
     volumes:
       - ./data:/app/data
@@ -503,13 +503,13 @@ echo $API_KEY
 curl http://localhost:8000/health
 ```
 
-**Erreurs OpenAI :**
+**Erreurs Groq :**
 ```bash
 # Vérifier la clé
-echo $OPENAI_API_KEY
+echo $GROQ_API_KEY
 
 # Tester directement
-python -c "import openai; print('OK')"
+python test_connection.py
 ```
 
 ### Logs et Monitoring

@@ -48,7 +48,7 @@ datasets = {}
 agents = {}
 
 def get_llm():
-    """Initialise le LLM (Groq ou OpenAI)"""
+    """Initialise le LLM Groq"""
     groq_api_key = os.getenv("GROQ_API_KEY")
     if groq_api_key:
         return ChatOpenAI(
@@ -58,11 +58,8 @@ def get_llm():
             openai_api_base="https://api.groq.com/openai/v1"
         )
     else:
-        return ChatOpenAI(
-            model="gpt-4o-mini", 
-            temperature=0,
-            openai_api_key=os.getenv("OPENAI_API_KEY")
-        )
+        print("❌ GROQ_API_KEY non configurée !")
+        return None
 
 # Modèles Pydantic
 class QueryRequest(BaseModel):

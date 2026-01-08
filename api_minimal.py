@@ -22,7 +22,7 @@ from openai import OpenAI
 # Charger les variables d'environnement
 load_dotenv()
 
-# Configuration LLM (Groq ou OpenAI)
+# Configuration LLM Groq
 def get_client_info():
     groq_key = os.getenv("GROQ_API_KEY")
     if groq_key:
@@ -31,7 +31,8 @@ def get_client_info():
             base_url="https://api.groq.com/openai/v1"
         ), "llama-3.3-70b-versatile"
     else:
-        return OpenAI(api_key=os.getenv("OPENAI_API_KEY")), "gpt-3.5-turbo"
+        print("❌ GROQ_API_KEY manquante dans .env")
+        return None, None
 
 client, default_model = get_client_info()
 
@@ -135,10 +136,10 @@ def analyze_locally(df, query):
 def analyze_with_openai(df, query):
     """Analyse des données avec OpenAI directement"""
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        if not client:
+            return "❌ Erreur: GROQ_API_KEY non configurée."
         
-        # Créer un résumé détaillé des données avec vraies statistiques
+        # Créer un résumé détaillé
         numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
         
