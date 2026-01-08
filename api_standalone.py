@@ -47,6 +47,23 @@ if os.path.exists("web"):
 datasets = {}
 agents = {}
 
+def get_llm():
+    """Initialise le LLM (Groq ou OpenAI)"""
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if groq_api_key:
+        return ChatOpenAI(
+            model="llama-3.3-70b-versatile", 
+            temperature=0.1,
+            openai_api_key=groq_api_key,
+            openai_api_base="https://api.groq.com/openai/v1"
+        )
+    else:
+        return ChatOpenAI(
+            model="gpt-4o-mini", 
+            temperature=0,
+            openai_api_key=os.getenv("OPENAI_API_KEY")
+        )
+
 # Modèles Pydantic
 class QueryRequest(BaseModel):
     session_id: str
@@ -189,11 +206,7 @@ async def upload_file(session_id: str = Form(...), file: UploadFile = File(...))
         
         # Créer l'agent pandas
         try:
-            llm = ChatOpenAI(
-                temperature=0,
-                model="gpt-4o-mini",
-                openai_api_key=os.getenv("OPENAI_API_KEY")
-            )
+            llm = get_llm()
             
             agent = create_pandas_dataframe_agent(
                 llm=llm,

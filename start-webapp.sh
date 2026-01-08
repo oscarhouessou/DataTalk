@@ -30,15 +30,18 @@ fi
 if [ ! -f .env ]; then
     echo "⚠️  Fichier .env non trouvé."
     echo "📝 Création du fichier .env..."
-    echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
-    echo "⚠️  Veuillez configurer votre clé API OpenAI dans le fichier .env"
+    echo "GROQ_API_KEY=your_groq_api_key_here" > .env
+    echo "⚠️  Veuillez configurer votre clé API Groq (recommandé) ou OpenAI dans le fichier .env"
     exit 1
 fi
 
-# Vérifier si la clé API est configurée
-if grep -q "your_openai_api_key_here" .env; then
-    echo "⚠️  Clé API OpenAI non configurée dans le fichier .env"
-    echo "📝 Veuillez remplacer 'your_openai_api_key_here' par votre vraie clé API"
+# Vérifier si l'une des clés API est configurée
+HAS_GROQ=$(grep "GROQ_API_KEY=" .env | grep -v "your_groq_api_key_here")
+HAS_OPENAI=$(grep "OPENAI_API_KEY=" .env | grep -v "your_openai_api_key_here")
+
+if [ -z "$HAS_GROQ" ] && [ -z "$HAS_OPENAI" ]; then
+    echo "⚠️  Aucune clé API (Groq ou OpenAI) n'est configurée dans le fichier .env"
+    echo "📝 Veuillez configurer GROQ_API_KEY ou OPENAI_API_KEY"
     exit 1
 fi
 

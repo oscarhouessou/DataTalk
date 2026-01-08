@@ -22,8 +22,18 @@ from openai import OpenAI
 # Charger les variables d'environnement
 load_dotenv()
 
-# Configuration OpenAI
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Configuration LLM (Groq ou OpenAI)
+def get_client_info():
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        return OpenAI(
+            api_key=groq_key,
+            base_url="https://api.groq.com/openai/v1"
+        ), "llama-3.3-70b-versatile"
+    else:
+        return OpenAI(api_key=os.getenv("OPENAI_API_KEY")), "gpt-3.5-turbo"
+
+client, default_model = get_client_info()
 
 # Créer l'instance FastAPI
 app = FastAPI(
@@ -179,12 +189,12 @@ Donne une réponse claire et précise basée sur les données disponibles.
 """
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=default_model,
             messages=[
                 {"role": "system", "content": "Tu es un expert en analyse de données."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=500,
+            max_tokens=1000,
             temperature=0.1
         )
         
